@@ -21,7 +21,7 @@ const latex = `\\documentclass[10pt,a4paper]{article}
 \\vspace{3pt}
 {\\color{accent} Data Scientist \\&  ML Engineer}\\par
 \\vspace{3pt}
-{\\small david.chen@ml.io \\;\\textbullet\\; (555) 654-3210 \\;\\textbullet\\; linkedin.com/in/davidchen \\;\\textbullet\\; Boston, MA}\\par
+{\\small david.chen@ml.io \\,\\textbullet\\, (555) 654-3210 \\,\\textbullet\\, linkedin.com/in/davidchen \\,\\textbullet\\, Boston, MA}\\par
 \\vspace{4pt}
 \\noindent{\\color{accent}\\rule{\\linewidth}{1pt}}
 \\vspace{6pt}
@@ -129,8 +129,8 @@ Time-series forecasting SaaS used by 40+ e-commerce companies.
 \\rule{\\linewidth}{0.3pt}\\vspace{3pt}
 
 {\\small
-D. Chen et al., ``Efficient Sparse Attention for Long Documents,'' NeurIPS Workshop 2020.\\\\
-D. Chen \\& L. Wang, ``Demand Forecasting with Temporal Fusion Transformers,'' ICML 2022.
+D. Chen et al., \`\`Efficient Sparse Attention for Long Documents,'' NeurIPS Workshop 2020.\\\\
+D. Chen \\& L. Wang, \`\`Demand Forecasting with Temporal Fusion Transformers,'' ICML 2022.
 }
 
 \\end{paracol}

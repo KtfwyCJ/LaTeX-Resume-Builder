@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { compileLatex } from '../lib/latexCompiler';
+import { saveResume } from '../lib/resumeStorage';
 
 interface Props {
   initialLatex: string;
@@ -14,6 +15,39 @@ export default function EditorPage({ initialLatex, onBack }: Props) {
   const [compileError, setCompileError] = useState('');
   const [errorOpen, setErrorOpen] = useState(false);
   const prevPdfUrl = useRef<string | null>(null);
+  const hasChanged = useRef(false);
+
+  const [splitPct, setSplitPct] = useState(50);
+  const dragging = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragging.current = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, []);
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const pct = ((e.clientX - rect.left) / rect.width) * 100;
+      setSplitPct(Math.min(80, Math.max(20, pct)));
+    };
+    const onMouseUp = () => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, []);
 
   const compile = async (latexSource: string) => {
     setCompiling(true);
@@ -37,6 +71,12 @@ export default function EditorPage({ initialLatex, onBack }: Props) {
       if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasChanged.current) { hasChanged.current = true; return; }
+    const timer = setTimeout(() => saveResume(source), 1000);
+    return () => clearTimeout(timer);
+  }, [source]);
 
   const downloadTex = () => {
     const blob = new Blob([source], { type: 'text/plain' });
@@ -80,9 +120,9 @@ export default function EditorPage({ initialLatex, onBack }: Props) {
       </header>
 
       {/* Split panels */}
-      <div className="flex flex-1 overflow-hidden">
+      <div ref={containerRef} className="flex flex-1 overflow-hidden">
         {/* Left: LaTeX editor */}
-        <div className="flex flex-col w-1/2 border-r border-gray-100">
+        <div className="flex flex-col overflow-hidden" style={{ width: `${splitPct}%` }}>
           <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
             <span className="text-xs font-bold tracking-widest uppercase text-gray-400">
               LaTeX Source
@@ -142,8 +182,14 @@ export default function EditorPage({ initialLatex, onBack }: Props) {
           )}
         </div>
 
+        {/* Draggable divider */}
+        <div
+          onMouseDown={onDividerMouseDown}
+          className="w-1 bg-gray-200 hover:bg-indigo-400 cursor-col-resize transition-colors flex-shrink-0"
+        />
+
         {/* Right: PDF preview */}
-        <div className="flex flex-col w-1/2 bg-gray-50">
+        <div className="flex flex-col bg-gray-50 overflow-hidden" style={{ width: `${100 - splitPct}%` }}>
           <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
             <span className="text-xs font-bold tracking-widest uppercase text-gray-400">
               PDF Preview

@@ -1,37 +1,46 @@
 import { useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import EditorPage from './pages/EditorPage';
 import TemplateGallery from './components/TemplateGallery';
 import templates from './templates';
-import type { AppPage } from './types';
 
-export default function App() {
-  const [page, setPage] = useState<AppPage>('landing');
+function AppRoutes() {
+  const navigate = useNavigate();
   const [latexSource, setLatexSource] = useState('');
 
   const handleParsed = (latex: string) => {
     setLatexSource(latex);
-    setPage('editor');
+    navigate('/editor');
   };
 
-  if (page === 'editor') {
-    return (
-      <EditorPage
-        initialLatex={latexSource}
-        onBack={() => { setPage('landing'); setLatexSource(''); }}
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={<LandingPage onParsed={handleParsed} onOpenGallery={() => navigate('/gallery')} />}
       />
-    );
-  }
-
-  if (page === 'gallery') {
-    return (
-      <TemplateGallery
-        templates={templates}
-        onSelect={handleParsed}
-        onBack={() => setPage('landing')}
+      <Route
+        path="/gallery"
+        element={<TemplateGallery templates={templates} onSelect={handleParsed} onBack={() => navigate('/')} />}
       />
-    );
-  }
+      <Route
+        path="/editor"
+        element={
+          latexSource
+            ? <EditorPage initialLatex={latexSource} onBack={() => { setLatexSource(''); navigate('/'); }} />
+            : <Navigate to="/" replace />
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
-  return <LandingPage onParsed={handleParsed} onOpenGallery={() => setPage('gallery')} />;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }

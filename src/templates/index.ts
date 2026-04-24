@@ -1,9 +1,11 @@
 import classic from './classic';
 import modern from './modern';
 import minimal from './minimal';
-import sidebar from './sidebar';
 import sharp from './sharp';
 import executive from './executive';
+import twocolumn from './twocolumn';
+import photo from './photo';
+import infographic from './infographic';
 
 export interface Template {
   id: string;
@@ -44,11 +46,23 @@ const templates: Template[] = [
     latex: executive,
   },
   {
-    id: 'sidebar',
-    name: 'Sidebar',
-    description: 'Two-column with a colored sidebar — striking design for creative and UX roles.',
-    latex: sidebar,
-  }
+    id: 'twocolumn',
+    name: 'Two Column',
+    description: 'Side-by-side columns with a full-width header — great for dense, information-rich CVs.',
+    latex: twocolumn,
+  },
+  {
+    id: 'photo',
+    name: 'Photo',
+    description: 'European-style CV with a portrait photo in the header — polished and personal.',
+    latex: photo,
+  },
+  {
+    id: 'infographic',
+    name: 'Infographic',
+    description: 'Sidebar with visual skill-bar graphs — modern, data-driven design for technical roles.',
+    latex: infographic,
+  },
 ];
 
 export default templates;

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { renderPagesAsImages } from '../lib/pdfParser';
+import { clearResume, loadResume } from '../lib/resumeStorage';
+import type { Draft } from '../lib/resumeStorage';
 
 async function renderFirstPage(file: File): Promise<string> {
   const [img] = await renderPagesAsImages(file, 1);
@@ -19,6 +21,11 @@ function formatSize(bytes: number) {
     : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+function draftAge(savedAt: number): string {
+  const days = Math.floor((Date.now() - savedAt) / 86_400_000);
+  return days < 1 ? 'today' : `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
 export default function LandingPage({ onParsed, onOpenGallery }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +33,11 @@ export default function LandingPage({ onParsed, onOpenGallery }: Props) {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState<Draft | null>(null);
+
+  useEffect(() => {
+    setDraft(loadResume());
+  }, []);
 
   // Render first page to canvas image when a file is selected
   useEffect(() => {
@@ -95,6 +107,28 @@ export default function LandingPage({ onParsed, onOpenGallery }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Resume draft banner */}
+      {draft && (
+        <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between gap-3 px-5 py-2.5 bg-indigo-600 text-white text-sm">
+          <span className="flex items-center gap-2">
+            <span>You have changes saved {draftAge(draft.savedAt)} —</span>
+            <button
+              onClick={() => onParsed(draft.latex)}
+              className="font-semibold underline underline-offset-2 hover:text-indigo-200 transition-colors"
+            >
+              Resume editing →
+            </button>
+          </span>
+          <button
+            onClick={() => { clearResume(); setDraft(null); }}
+            className="text-indigo-200 hover:text-white transition-colors leading-none"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Badge */}
       <div className="mb-6 flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold tracking-widest uppercase">
         ✦ Free · No sign-up needed
@@ -107,39 +141,71 @@ export default function LandingPage({ onParsed, onOpenGallery }: Props) {
           Resume Builder
         </span>
       </h1>
-      <p className="text-gray-500 text-lg mb-12 text-center max-w-md leading-relaxed">
-        Upload your PDF resume and instantly get pixel-perfect LaTeX source — fully editable with a live compiled preview.
+      <p className="text-gray-500 text-lg mb-10 text-center max-w-md leading-relaxed">
+        Pick a professional template and edit it live — or import your existing PDF resume.
       </p>
 
-      {/* Drop zone */}
+      {/* Primary CTA: Templates */}
+      <div className="w-full max-w-md rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-px shadow-xl shadow-indigo-200">
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 px-8 py-8 text-center">
+          {/* Mini template chips */}
+          <div className="flex justify-center gap-2 mb-6">
+            {['Modern', 'Classic', 'Minimal', 'Sidebar', 'Executive'].map((name) => (
+              <span
+                key={name}
+                className="px-2.5 py-1 rounded-lg bg-white/20 text-white text-xs font-semibold tracking-wide"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+          <h2 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
+            Start from a Template
+          </h2>
+          <p className="text-indigo-100 text-sm mb-7 leading-relaxed">
+            10+ professional designs ready to customize with a live LaTeX editor and instant PDF preview.
+          </p>
+          <button
+            onClick={onOpenGallery}
+            className="
+              w-full py-3.5 rounded-xl bg-white text-indigo-600 font-bold text-sm tracking-wide
+              shadow-lg hover:bg-indigo-50 transition-colors duration-200
+            "
+          >
+            Browse Templates →
+          </button>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-4 w-full max-w-md my-6">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400 font-medium">or import your PDF</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      {/* Secondary CTA: PDF upload */}
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
         className={`
-          w-full max-w-md border-2 border-dashed rounded-2xl p-14 text-center cursor-pointer
+          w-full max-w-md border-2 border-dashed rounded-2xl px-8 py-6 text-center cursor-pointer
           transition-all duration-200 select-none
           ${isDragging
             ? 'border-indigo-400 bg-indigo-50'
-            : 'border-indigo-200 bg-white hover:border-indigo-400 hover:bg-indigo-50'}
+            : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40'}
         `}
       >
-        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-3xl">
-          📄
-        </div>
-        <h3 className="text-base font-semibold text-gray-700 mb-2">
-          {isDragging ? 'Release to upload' : 'Drop your resume here'}
-        </h3>
-        <p className="text-sm text-gray-400 mb-6">PDF only · Max 10 MB</p>
-
+        <p className="text-sm font-semibold text-gray-500 mb-1">
+          {isDragging ? 'Release to upload' : 'Drop your PDF here'}
+        </p>
+        <p className="text-xs text-gray-400 mb-4">PDF only · Max 10 MB</p>
         <button
           className="
-            px-7 py-3 rounded-xl text-white text-sm font-bold tracking-wide
-            bg-gradient-to-r from-indigo-500 to-purple-500
-            shadow-lg shadow-indigo-200
-            hover:shadow-xl hover:from-indigo-600 hover:to-purple-600
-            transition-all duration-200
+            px-6 py-2.5 rounded-xl text-indigo-600 text-sm font-bold border-2 border-indigo-200
+            hover:bg-indigo-50 hover:border-indigo-400 transition-all duration-200
           "
           onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
         >
@@ -153,17 +219,6 @@ export default function LandingPage({ onParsed, onOpenGallery }: Props) {
           onChange={onFileChange}
         />
       </div>
-
-      {/* Check samples link */}
-      <p className="mt-5 text-sm text-gray-400">
-        Don't have a PDF?{' '}
-        <button
-          onClick={onOpenGallery}
-          className="text-indigo-500 font-semibold hover:underline"
-        >
-          Check sample templates →
-        </button>
-      </p>
 
       {error && (
         <p className="mt-5 text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-5 py-3 max-w-md text-center">

@@ -40,8 +40,8 @@ A modern web application for creating professional resumes using LaTeX templates
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/latex-resume.git
-   cd latex-resume
+   git clone https://github.com/KtfwyCJ/LaTeX-Resume-Builder.git
+   cd LaTeX-Resume-Builder
    ```
 
 2. Install dependencies:

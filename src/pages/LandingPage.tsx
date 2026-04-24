@@ -8,6 +8,7 @@ async function renderFirstPage(file: File): Promise<string> {
 
 interface Props {
   onParsed: (latex: string) => void;
+  onOpenGallery: () => void;
 }
 
 const MAX_SIZE = 10 * 1024 * 1024;
@@ -18,7 +19,7 @@ function formatSize(bytes: number) {
     : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-export default function LandingPage({ onParsed }: Props) {
+export default function LandingPage({ onParsed, onOpenGallery }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -152,6 +153,17 @@ export default function LandingPage({ onParsed }: Props) {
           onChange={onFileChange}
         />
       </div>
+
+      {/* Check samples link */}
+      <p className="mt-5 text-sm text-gray-400">
+        Don't have a PDF?{' '}
+        <button
+          onClick={onOpenGallery}
+          className="text-indigo-500 font-semibold hover:underline"
+        >
+          Check sample templates →
+        </button>
+      </p>
 
       {error && (
         <p className="mt-5 text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-5 py-3 max-w-md text-center">

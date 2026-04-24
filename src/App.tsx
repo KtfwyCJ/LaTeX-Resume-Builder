@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import LandingPage from './pages/LandingPage';
 import EditorPage from './pages/EditorPage';
+import TemplateGallery from './components/TemplateGallery';
+import templates from './templates';
 import type { AppPage } from './types';
 
 export default function App() {
@@ -12,14 +14,24 @@ export default function App() {
     setPage('editor');
   };
 
-  const handleBack = () => {
-    setPage('landing');
-    setLatexSource('');
-  };
-
   if (page === 'editor') {
-    return <EditorPage initialLatex={latexSource} onBack={handleBack} />;
+    return (
+      <EditorPage
+        initialLatex={latexSource}
+        onBack={() => { setPage('landing'); setLatexSource(''); }}
+      />
+    );
   }
 
-  return <LandingPage onParsed={handleParsed} />;
+  if (page === 'gallery') {
+    return (
+      <TemplateGallery
+        templates={templates}
+        onSelect={handleParsed}
+        onBack={() => setPage('landing')}
+      />
+    );
+  }
+
+  return <LandingPage onParsed={handleParsed} onOpenGallery={() => setPage('gallery')} />;
 }

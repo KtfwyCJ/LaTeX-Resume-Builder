@@ -1,4 +1,4 @@
-export type AppPage = 'landing' | 'editor';
+export type AppPage = 'landing' | 'gallery' | 'editor';
 
 export interface TextItem {
   text: string;
